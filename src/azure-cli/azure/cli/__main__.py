@@ -3,6 +3,11 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 # pylint: disable=wrong-import-position
+import http.client
+import winrequests
+import sys
+sys.modules['requests'] = winrequests
+
 
 import timeit
 # Log the start time
@@ -18,6 +23,8 @@ from knack.log import get_logger
 
 __author__ = "Microsoft Corporation <python@microsoft.com>"
 __version__ = "2.39.0"
+
+
 
 
 # A workaround for https://bugs.python.org/issue32502 (https://github.com/Azure/azure-cli/issues/5184)
