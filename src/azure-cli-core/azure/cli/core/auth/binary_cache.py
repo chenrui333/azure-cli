@@ -55,7 +55,8 @@ class BinaryCache(collections.MutableMapping):
             # At this point, an empty cache file will be created. Loading this cache file will
             # raise EOFError. This can be simulated by adding time.sleep(30) here.
             # So during loading, EOFError is ignored.
-            pickle.dump(self.data, f)
+            # pickle.dump(self.data, f)
+            pass
 
     def save(self):
         logger.debug("save: %s", self.filename)

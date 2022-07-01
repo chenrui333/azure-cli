@@ -3,10 +3,17 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 # pylint: disable=wrong-import-position
-import http.client
+import http
 import winrequests
+winrequests._DEBUG = True
 import sys
 sys.modules['requests'] = winrequests
+
+from azure.cli.windows_transport import WindowsHttpTransport, WindowsHttpTransportResponse, WindowsPipelineClient
+import azure.core.pipeline.transport
+import azure.core
+azure.core.pipeline.transport.HttpTransport = WindowsHttpTransport
+azure.core.PipelineClient = WindowsPipelineClient
 
 
 import timeit
