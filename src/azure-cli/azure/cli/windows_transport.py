@@ -6,6 +6,8 @@ from azure.core import PipelineClient
 
 _DEBUG = False
 
+print('import windows transport')
+
 class WindowsHttpTransportResponse(HttpResponse):
     def __init__(self, request: HttpRequest, windows_http_response: Response, stream_contextmanager: Optional[ContextManager] = None):
         super().__init__(request, windows_http_response)
@@ -86,7 +88,6 @@ class WindowsHttpTransport(HttpTransport):
 
         else:
             response = self.client.request(**parameters)
-
         return WindowsHttpTransportResponse(request, response, stream_contextmanager=stream_ctx)
 
 
