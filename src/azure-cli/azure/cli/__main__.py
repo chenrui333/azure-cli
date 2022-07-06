@@ -9,20 +9,20 @@ winrequests._DEBUG = True
 import sys
 sys.modules['requests'] = winrequests
 
-from azure.cli.windows_transport import WindowsHttpTransport, WindowsHttpTransportResponse, WindowsPipelineClient
+from azure.cli.fix.windows_transport import WindowsHttpTransport, WindowsPipelineClient
 import azure.core.pipeline.transport
 import azure.core
 azure.core.pipeline.transport.HttpTransport = WindowsHttpTransport
 azure.core.PipelineClient = WindowsPipelineClient
 
-# import azure.cli.dummy_persistence as dummy_persistence
+# import azure.cli.fix.dummy_persistence as dummy_persistence
 # sys.modules['azure.cli.core.auth.persistence'] = dummy_persistence
 
-import azure.cli.dummy_portalocker as dummy_portalocker
+import azure.cli.fix.dummy_portalocker as dummy_portalocker
 sys.modules['portalocker'] = dummy_portalocker
 
-import azure.cli.fixed_binary_cache
-sys.modules['azure.cli.core.auth.binary_cache'] = azure.cli.fixed_binary_cache
+import azure.cli.fix.fixed_binary_cache
+sys.modules['azure.cli.core.auth.binary_cache'] = azure.cli.fix.fixed_binary_cache
 
 
 import timeit
