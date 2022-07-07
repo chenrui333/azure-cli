@@ -8,8 +8,10 @@ _DEBUG = False
 
 print('import windows transport')
 
+
 class WindowsHttpTransportResponse(HttpResponse):
-    def __init__(self, request: HttpRequest, windows_http_response: Response, stream_contextmanager: Optional[ContextManager] = None):
+    def __init__(self, request: HttpRequest, windows_http_response: Response,
+                 stream_contextmanager: Optional[ContextManager] = None):
         super().__init__(request, windows_http_response)
         self.status_code = windows_http_response.status_code
         self.headers = windows_http_response.headers
@@ -22,7 +24,6 @@ class WindowsHttpTransportResponse(HttpResponse):
 
     def stream_download(self, _) -> Iterator[bytes]:
         return WindowsHttpStreamDownloadGenerator(_, self)
-
 
 
 class WindowsHttpStreamDownloadGenerator():
@@ -83,7 +84,7 @@ class WindowsHttpTransport(HttpTransport):
         stream_ctx = None
 
         if stream_response:
-            stream_ctx = self.client.request(**parameters, stream = True)
+            stream_ctx = self.client.request(**parameters, stream=True)
             response = stream_ctx.__enter__()
 
         else:
@@ -92,6 +93,6 @@ class WindowsHttpTransport(HttpTransport):
 
 
 class WindowsPipelineClient(PipelineClient):
-    def __init__(self, base_url,**kwargs):
+    def __init__(self, base_url, **kwargs):
         kwargs['transport'] = WindowsHttpTransport()
-        super().__init__(base_url,**kwargs)
+        super().__init__(base_url, **kwargs)
