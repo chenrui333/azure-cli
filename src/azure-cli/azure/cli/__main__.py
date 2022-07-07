@@ -15,11 +15,6 @@ import azure.core
 azure.core.pipeline.transport.HttpTransport = WindowsHttpTransport
 azure.core.PipelineClient = WindowsPipelineClient
 
-# import azure.cli.fix.dummy_persistence as dummy_persistence
-# sys.modules['azure.cli.core.auth.persistence'] = dummy_persistence
-
-import azure.cli.fix.dummy_portalocker as dummy_portalocker
-sys.modules['portalocker'] = dummy_portalocker
 
 import azure.cli.fix.fixed_binary_cache
 sys.modules['azure.cli.core.auth.binary_cache'] = azure.cli.fix.fixed_binary_cache
