@@ -32,7 +32,7 @@ class BinaryCache(collections.MutableMapping):
         """Load cache with retry. If it still fails at last, raise the original exception as-is."""
         try:
             with open(self.filename, 'rb') as f:
-                return pickle.load(f)
+                return {}
         except FileNotFoundError:
             # The cache file has not been created. This is expected. No need to retry.
             logger.debug("%s not found. Using a fresh one.", self.filename)
@@ -62,7 +62,6 @@ class BinaryCache(collections.MutableMapping):
         # If 2 processes write at the same time, the cache will be corrupted,
         # but that is fine. Subsequent runs would reach eventual consistency.
         import sys
-        print(sys.modules)
         self._save()
 
     def get(self, key, default=None):
