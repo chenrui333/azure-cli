@@ -16,8 +16,9 @@ azure.core.pipeline.transport.HttpTransport = WindowsHttpTransport
 azure.core.PipelineClient = WindowsPipelineClient
 
 
-import azure.cli.fix.fixed_binary_cache
-sys.modules['azure.cli.core.auth.binary_cache'] = azure.cli.fix.fixed_binary_cache
+from azure.cli.fix.fixed_binary_cache import FixedBinaryCache
+import azure.cli.core.auth.binary_cache
+azure.cli.core.auth.binary_cache.BinaryCache = FixedBinaryCache
 
 
 import timeit
