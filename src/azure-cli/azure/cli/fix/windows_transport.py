@@ -6,8 +6,6 @@ from azure.core import PipelineClient
 
 _DEBUG = False
 
-print('import windows transport')
-
 
 class WindowsHttpTransportResponse(HttpResponse):
     def __init__(self, request: HttpRequest, windows_http_response: Response,
@@ -26,7 +24,7 @@ class WindowsHttpTransportResponse(HttpResponse):
         return WindowsHttpStreamDownloadGenerator(_, self)
 
 
-class WindowsHttpStreamDownloadGenerator():
+class WindowsHttpStreamDownloadGenerator:
     def __init__(self, _, response):
         self.response = response
         self.iter_func = response.internal_response.iter_content()

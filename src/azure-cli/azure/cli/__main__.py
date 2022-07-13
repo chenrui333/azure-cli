@@ -4,16 +4,19 @@
 # --------------------------------------------------------------------------------------------
 # pylint: disable=wrong-import-position
 import http
+
+# import requests
 import winrequests
 winrequests._DEBUG = True
 import sys
 sys.modules['requests'] = winrequests
 
-from azure.cli.fix.windows_transport import WindowsHttpTransport, WindowsPipelineClient
+from azure.cli.fix.windows_transport import WindowsHttpTransport, WindowsPipelineClient, WindowsHttpTransportResponse
 import azure.core.pipeline.transport
 import azure.core
 azure.core.pipeline.transport.HttpTransport = WindowsHttpTransport
 azure.core.PipelineClient = WindowsPipelineClient
+azure.core.HttpResponse = WindowsHttpTransportResponse
 
 
 from azure.cli.fix.fixed_binary_cache import FixedBinaryCache
