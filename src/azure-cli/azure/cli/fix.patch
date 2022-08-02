@@ -1,0 +1,215 @@
+diff --git a/src/azure-cli/azure/cli/fix/__init__.py b/src/azure-cli/azure/cli/fix/__init__.py
+new file mode 100644
+index 000000000..e69de29bb
+diff --git a/src/azure-cli/azure/cli/fix/fixed_binary_cache.py b/src/azure-cli/azure/cli/fix/fixed_binary_cache.py
+new file mode 100644
+index 000000000..37957b5d1
+--- /dev/null
++++ b/src/azure-cli/azure/cli/fix/fixed_binary_cache.py
+@@ -0,0 +1,104 @@
++# --------------------------------------------------------------------------------------------
++# Copyright (c) Microsoft Corporation. All rights reserved.
++# Licensed under the MIT License. See License.txt in the project root for license information.
++# --------------------------------------------------------------------------------------------
++from azure.cli.core.auth.binary_cache import BinaryCache
++
++
++class FixedBinaryCache(BinaryCache):
++    def _load(self):
++        """Load cache with retry. If it still fails at last, raise the original exception as-is."""
++        try:
++            with open(self.filename, 'rb') as f:
++                return {}
++        except FileNotFoundError:
++            # The cache file has not been created. This is expected. No need to retry.
++            return {}
++
++    def _save(self):
++        with open(self.filename, 'wb') as f:
++            # At this point, an empty cache file will be created. Loading this cache file will
++            # raise EOFError. This can be simulated by adding time.sleep(30) here.
++            # So during loading, EOFError is ignored.
++            pass
++#
++# import collections.abc as collections
++# import pickle
++#
++# from azure.cli.core.decorators import retry
++# from knack.log import get_logger
++#
++# logger = get_logger(__name__)
++#
++#
++# class BinaryCache(collections.MutableMapping):
++#     """
++#     Derived from azure.cli.core._session.Session.
++#     A simple dict-like class that is backed by a binary file.
++#
++#     All direct modifications with `__setitem__` and `__delitem__` will save the file.
++#     Indirect modifications should be followed by a call to `save`.
++#     """
++#
++#     def __init__(self, file_name):
++#         super().__init__()
++#         self.filename = file_name
++#         self.data = {}
++#         self.load()
++#
++#     @retry()
++#     def _load(self):
++#         """Load cache with retry. If it still fails at last, raise the original exception as-is."""
++#         try:
++#             with open(self.filename, 'rb') as f:
++#                 return {}
++#         except FileNotFoundError:
++#             # The cache file has not been created. This is expected. No need to retry.
++#             logger.debug("%s not found. Using a fresh one.", self.filename)
++#             return {}
++#
++#     def load(self):
++#         logger.debug("load: %s", self.filename)
++#         try:
++#             self.data = self._load()
++#         except (pickle.UnpicklingError, EOFError) as ex:
++#             # We still get exception after retry:
++#             # - pickle.UnpicklingError is caused by corrupted cache file, perhaps due to concurrent writes.
++#             # - EOFError is caused by empty cache file created by other az instance, but hasn't been filled yet.
++#             logger.debug("Failed to load cache: %s. Using a fresh one.", ex)
++#             self.data = {}  # Ignore a non-existing or corrupted http_cache
++#
++#     @retry()
++#     def _save(self):
++#         with open(self.filename, 'wb') as f:
++#             # At this point, an empty cache file will be created. Loading this cache file will
++#             # raise EOFError. This can be simulated by adding time.sleep(30) here.
++#             # So during loading, EOFError is ignored.
++#             pass
++#
++#     def save(self):
++#         logger.debug("save: %s", self.filename)
++#         # If 2 processes write at the same time, the cache will be corrupted,
++#         # but that is fine. Subsequent runs would reach eventual consistency.
++#         import sys
++#         self._save()
++#
++#     def get(self, key, default=None):
++#         return self.data.get(key, default)
++#
++#     def __getitem__(self, key):
++#         return self.data[key]
++#
++#     def __setitem__(self, key, value):
++#         self.data[key] = value
++#         self.save()
++#
++#     def __delitem__(self, key):
++#         del self.data[key]
++#         self.save()
++#
++#     def __iter__(self):
++#         return iter(self.data)
++#
++#     def __len__(self):
++#         return len(self.data)
+diff --git a/src/azure-cli/azure/cli/fix/windows_transport.py b/src/azure-cli/azure/cli/fix/windows_transport.py
+new file mode 100644
+index 000000000..80d0a3c55
+--- /dev/null
++++ b/src/azure-cli/azure/cli/fix/windows_transport.py
+@@ -0,0 +1,96 @@
++from azure.core.pipeline.transport import HttpResponse, HttpTransport, HttpRequest
++from windows.http import Response, Request, Session
++from typing import ContextManager, Iterator, Optional
++
++from azure.core import PipelineClient
++
++_DEBUG = False
++
++
++class WindowsHttpTransportResponse(HttpResponse):
++    def __init__(self, request: HttpRequest, windows_http_response: Response,
++                 stream_contextmanager: Optional[ContextManager] = None):
++        super().__init__(request, windows_http_response)
++        self.status_code = windows_http_response.status_code
++        self.headers = windows_http_response.headers
++        self.reason = windows_http_response.reason
++        self.content_type = windows_http_response.headers.get('content-type')
++        self.stream_contextmanager = stream_contextmanager
++
++    def body(self):
++        return self.internal_response.content
++
++    def stream_download(self, _) -> Iterator[bytes]:
++        return WindowsHttpStreamDownloadGenerator(_, self)
++
++
++class WindowsHttpStreamDownloadGenerator:
++    def __init__(self, _, response):
++        self.response = response
++        self.iter_func = response.internal_response.iter_content()
++
++    def __iter__(self):
++        return self
++
++    def __next__(self):
++        try:
++            return next(self.iter_func)
++        except StopIteration:
++            self.response.stream_contextmanager.close()
++            raise
++
++
++class WindowsHttpTransport(HttpTransport):
++    def __init__(self):
++        self.client = None
++        if _DEBUG:
++            print('use windows-http transport')
++
++    def open(self):
++        self.client = Session()
++
++    def close(self):
++        self.client = None
++
++    def __enter__(self):
++        self.open()
++        return self
++
++    def __exit__(self, *args):
++        self.close()
++
++    def send(self, request: HttpRequest, **kwargs) -> HttpResponse:
++        if self.client is None:
++            self.client = Session()
++        if _DEBUG:
++            print(f"sending a {request.method} to {request.url}")
++
++        stream_response = kwargs.pop("stream", False)
++
++        parameters = {
++            "method": request.method,
++            "url": request.url,
++            "headers": request.headers.items(),
++            "data": request.data,
++            "files": request.files,
++            **kwargs
++        }
++
++        if type(parameters["data"]) is str:
++            parameters["data"] = parameters["data"].encode('utf-8')
++
++        stream_ctx = None
++
++        if stream_response:
++            stream_ctx = self.client.request(**parameters, stream=True)
++            response = stream_ctx.__enter__()
++
++        else:
++            response = self.client.request(**parameters)
++        return WindowsHttpTransportResponse(request, response, stream_contextmanager=stream_ctx)
++
++
++class WindowsPipelineClient(PipelineClient):
++    def __init__(self, base_url, **kwargs):
++        kwargs['transport'] = WindowsHttpTransport()
++        super().__init__(base_url, **kwargs)
