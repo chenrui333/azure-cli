@@ -40,8 +40,6 @@ __author__ = "Microsoft Corporation <python@microsoft.com>"
 __version__ = "2.39.0"
 
 
-
-
 # A workaround for https://bugs.python.org/issue32502 (https://github.com/Azure/azure-cli/issues/5184)
 # If uuid1 raises ValueError, use uuid4 instead.
 try:
