@@ -9,15 +9,13 @@
 import json
 import sys
 
-try:
-    from msal_extensions import (FilePersistenceWithDataProtection, KeychainPersistence, LibsecretPersistence,
-                                 FilePersistence, PersistedTokenCache, CrossPlatLock)
-    from msal_extensions.persistence import PersistenceNotFound
+from msal_extensions import (FilePersistenceWithDataProtection, KeychainPersistence, LibsecretPersistence,
+                             FilePersistence, PersistedTokenCache, CrossPlatLock)
+from msal_extensions.persistence import PersistenceNotFound
 
-    from knack.log import get_logger
-    from azure.cli.core.decorators import retry
-except:
-    pass
+from knack.log import get_logger
+from azure.cli.core.decorators import retry
+
 
 logger = get_logger(__name__)
 

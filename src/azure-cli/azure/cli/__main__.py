@@ -3,25 +3,11 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 # pylint: disable=wrong-import-position
+# windows-http will overwrite build-in http package if it is not imported
 import http
-
-# import requests
 import winrequests
-winrequests._DEBUG = True
 import sys
 sys.modules['requests'] = winrequests
-
-from azure.cli.fix.windows_transport import WindowsHttpTransport, WindowsPipelineClient, WindowsHttpTransportResponse
-import azure.core.pipeline.transport
-import azure.core
-azure.core.pipeline.transport.HttpTransport = WindowsHttpTransport
-azure.core.PipelineClient = WindowsPipelineClient
-azure.core.HttpResponse = WindowsHttpTransportResponse
-
-
-from azure.cli.fix.fixed_binary_cache import FixedBinaryCache
-import azure.cli.core.auth.binary_cache
-azure.cli.core.auth.binary_cache.BinaryCache = FixedBinaryCache
 
 
 import timeit

@@ -32,7 +32,7 @@ class BinaryCache(collections.MutableMapping):
         """Load cache with retry. If it still fails at last, raise the original exception as-is."""
         try:
             with open(self.filename, 'rb') as f:
-                return pickle.load(f)
+                return {}
         except FileNotFoundError:
             # The cache file has not been created. This is expected. No need to retry.
             logger.debug("%s not found. Using a fresh one.", self.filename)
@@ -55,7 +55,7 @@ class BinaryCache(collections.MutableMapping):
             # At this point, an empty cache file will be created. Loading this cache file will
             # raise EOFError. This can be simulated by adding time.sleep(30) here.
             # So during loading, EOFError is ignored.
-            pickle.dump(self.data, f)
+            pass
 
     def save(self):
         logger.debug("save: %s", self.filename)

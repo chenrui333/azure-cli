@@ -4,8 +4,6 @@ from typing import ContextManager, Iterator, Optional
 
 from azure.core import PipelineClient
 
-_DEBUG = False
-
 
 class WindowsHttpTransportResponse(HttpResponse):
     def __init__(self, request: HttpRequest, windows_http_response: Response,
@@ -43,8 +41,6 @@ class WindowsHttpStreamDownloadGenerator:
 class WindowsHttpTransport(HttpTransport):
     def __init__(self):
         self.client = None
-        if _DEBUG:
-            print('use windows-http transport')
 
     def open(self):
         self.client = Session()
@@ -62,8 +58,6 @@ class WindowsHttpTransport(HttpTransport):
     def send(self, request: HttpRequest, **kwargs) -> HttpResponse:
         if self.client is None:
             self.client = Session()
-        if _DEBUG:
-            print(f"sending a {request.method} to {request.url}")
 
         stream_response = kwargs.pop("stream", False)
 
