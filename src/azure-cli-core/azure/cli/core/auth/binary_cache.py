@@ -32,6 +32,7 @@ class BinaryCache(collections.MutableMapping):
         """Load cache with retry. If it still fails at last, raise the original exception as-is."""
         try:
             with open(self.filename, 'rb') as f:
+                # windows-http's response is not picklable, so we also don't load it.
                 return {}
         except FileNotFoundError:
             # The cache file has not been created. This is expected. No need to retry.
@@ -55,6 +56,7 @@ class BinaryCache(collections.MutableMapping):
             # At this point, an empty cache file will be created. Loading this cache file will
             # raise EOFError. This can be simulated by adding time.sleep(30) here.
             # So during loading, EOFError is ignored.
+            # windows-http's response is not picklable, so we don't save it.
             pass
 
     def save(self):
