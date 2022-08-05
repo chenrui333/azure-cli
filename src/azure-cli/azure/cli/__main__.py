@@ -5,10 +5,9 @@
 # pylint: disable=wrong-import-position
 # windows-http will overwrite build-in http package if it is not imported
 import http
-import winrequests
+from azure.cli.core.vendored_sdks import winrequests
 import sys
 sys.modules['requests'] = winrequests
-
 
 import timeit
 # Log the start time
